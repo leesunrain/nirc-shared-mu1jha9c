@@ -61,6 +61,12 @@
     .step small{color:var(--muted);line-height:1.45}
     .note{font-size:12px;color:var(--muted);line-height:1.55}
     .warn{background:#fff7ed;border-color:#fed7aa}
+    .installbtn{
+      width:100%;border:1px solid #111827;border-radius:14px;padding:14px 12px;
+      margin:0 0 12px;background:white;color:#111827;font-size:16px;font-weight:900;
+      cursor:pointer
+    }
+    .installhint{font-size:12px;color:var(--muted);text-align:center;margin:-5px 0 14px}
     .hidden{display:none}
     @media(max-width:520px){
       .grid{grid-template-columns:1fr 1fr}
@@ -75,6 +81,8 @@
   <div class="sub">10K PB 기록 하나로 VDOT → E/T 페이스 → 트랙 랩 자동 계산</div>
 
   <div class="session">E 3.2km + (T 1200m + E 2분) × 4 + E 3.2km</div>
+  <button id="installAppBtn" class="installbtn" type="button">📲 홈 화면에 설치</button>
+  <div id="installHint" class="installhint">설치 버튼이 바로 작동하지 않으면 Chrome 메뉴에서 ‘앱 설치’를 선택하세요.</div>
 
   <div class="card">
     <div class="label">10K PB 기록 입력</div>
@@ -286,6 +294,44 @@ function calculate(){
 }
 
 calculate();
+
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const b = document.getElementById('installAppBtn');
+  if (b) b.style.display = 'block';
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const b = document.getElementById('installAppBtn');
+  const h = document.getElementById('installHint');
+  if (b) b.textContent = '✓ 홈 화면에 설치됨';
+  if (b) b.disabled = true;
+  if (h) h.textContent = '설치가 완료되었습니다.';
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const b = document.getElementById('installAppBtn');
+  if (b) {
+    b.addEventListener('click', async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+      } else {
+        alert("Chrome 오른쪽 위 ⋮ 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해주세요. 처음 연 직후에는 설치 항목이 나타나는 데 잠시 걸릴 수 있습니다.");
+      }
+    });
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+});
+
 </script>
 </body>
 </html>
