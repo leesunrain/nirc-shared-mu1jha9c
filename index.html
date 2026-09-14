@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>Daniels T Session</title>
+  <style>
+    :root{
+      --bg:#f4f6f8; --card:#fff; --ink:#111827; --muted:#6b7280;
+      --line:#e5e7eb; --accent:#111827; --soft:#eef2f7;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
+      "Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;
+    }
+    .wrap{max-width:760px;margin:0 auto;padding:20px 16px 40px}
+    h1{font-size:25px;line-height:1.25;margin:8px 0 4px}
+    .sub{font-size:14px;color:var(--muted);margin-bottom:18px}
+    .session{
+      background:var(--accent);color:white;border-radius:18px;padding:18px;
+      font-weight:800;font-size:18px;line-height:1.5;margin-bottom:14px;
+    }
+    .card{
+      background:var(--card);border:1px solid var(--line);border-radius:18px;
+      padding:16px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,.035)
+    }
+    .label{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:8px}
+    .inputrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    input{
+      width:100%;border:1px solid #cfd5dd;border-radius:12px;padding:14px 10px;
+      font-size:22px;text-align:center;font-weight:800;background:white;color:var(--ink)
+    }
+    button{
+      width:100%;border:0;border-radius:14px;padding:15px 12px;margin-top:12px;
+      font-size:17px;font-weight:800;background:var(--accent);color:white;cursor:pointer
+    }
+    .quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .quick button{
+      width:auto;margin:0;padding:9px 12px;font-size:13px;background:var(--soft);color:var(--ink)
+    }
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .metric{background:#f9fafb;border:1px solid var(--line);border-radius:14px;padding:13px}
+    .metric .k{font-size:12px;color:var(--muted);font-weight:700}
+    .metric .v{font-size:22px;font-weight:900;margin-top:4px}
+    .metric .s{font-size:12px;color:var(--muted);margin-top:3px}
+    .focus{
+      border:2px solid var(--ink);background:white;
+    }
+    .steps{display:grid;gap:8px}
+    .step{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start;
+      padding:12px;background:#f9fafb;border-radius:13px;border:1px solid var(--line)}
+    .n{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px}
+    .step b{display:block;margin-bottom:3px}
+    .step small{color:var(--muted);line-height:1.45}
+    .note{font-size:12px;color:var(--muted);line-height:1.55}
+    .warn{background:#fff7ed;border-color:#fed7aa}
+    .hidden{display:none}
+    @media(max-width:520px){
+      .grid{grid-template-columns:1fr 1fr}
+      h1{font-size:23px}
+      .metric .v{font-size:20px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Daniels 대회 직전 T 세션</h1>
+  <div class="sub">10K PB 기록 하나로 VDOT → E/T 페이스 → 트랙 랩 자동 계산</div>
+
+  <div class="session">E 3.2km + (T 1200m + E 2분) × 4 + E 3.2km</div>
+
+  <div class="card">
+    <div class="label">10K PB 기록 입력</div>
+    <div class="inputrow">
+      <div><input id="hh" inputmode="numeric" value="0" aria-label="시간"></div>
+      <div><input id="mm" inputmode="numeric" value="40" aria-label="분"></div>
+      <div><input id="ss" inputmode="numeric" value="00" aria-label="초"></div>
+    </div>
+    <div class="quick">
+      <button onclick="setTime(38,0)">38:00</button>
+      <button onclick="setTime(40,0)">40:00</button>
+      <button onclick="setTime(42,0)">42:00</button>
+      <button onclick="setTime(45,0)">45:00</button>
+      <button onclick="setTime(50,0)">50:00</button>
+    </div>
+    <button onclick="calculate()">훈련 페이스 계산</button>
+
+    <div id="marathonBox" class="metric focus" style="margin-top:12px;text-align:center;">
+      <div class="k">Daniels VDOT 기준 풀 예상 기록</div>
+      <div class="v" id="marathonEstimate">-</div>
+      <div class="s">42.195 km 동등 성능 예측</div>
+    </div>
+  </div>
+
+  <div id="results" class="hidden">
+    <div class="card">
+      <div class="grid">
+        <div class="metric">
+          <div class="k">10K PB 페이스</div>
+          <div class="v" id="racePace">-</div>
+          <div class="s">/km</div>
+        </div>
+        <div class="metric">
+          <div class="k">VDOT</div>
+          <div class="v" id="vdot">-</div>
+          <div class="s">Daniels–Gilbert 계산</div>
+        </div>
+        <div class="metric">
+          <div class="k">Daniels E 범위</div>
+          <div class="v" id="eRange">-</div>
+          <div class="s">59–74% 강도</div>
+        </div>
+        <div class="metric">
+          <div class="k">세션 권장 E</div>
+          <div class="v" id="eRec">-</div>
+          <div class="s">보수적 65% 기준</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card focus">
+      <div class="label">Threshold · T 페이스</div>
+      <div class="grid">
+        <div class="metric">
+          <div class="k">T 페이스</div>
+          <div class="v" id="tPace">-</div>
+          <div class="s">/km · 88%</div>
+        </div>
+        <div class="metric">
+          <div class="k">T 400m</div>
+          <div class="v" id="t400">-</div>
+          <div class="s">트랙 1랩</div>
+        </div>
+        <div class="metric">
+          <div class="k">T 1200m</div>
+          <div class="v" id="t1200">-</div>
+          <div class="s">트랙 3랩</div>
+        </div>
+        <div class="metric">
+          <div class="k">T 총량</div>
+          <div class="v">4.8 km</div>
+          <div class="s">1200m × 4</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">오늘의 세션</div>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div><b id="s1">E 3.2km</b><small>트랙 8랩 · 워밍업</small></div></div>
+        <div class="step"><div class="n">2</div><div><b id="s2">T 1200m</b><small>트랙 3랩</small></div></div>
+        <div class="step"><div class="n">3</div><div><b id="s3">E 2분</b><small>회복 조깅 · 멈추지 않고 편하게</small></div></div>
+        <div class="step"><div class="n">4</div><div><b>위 T 1200m + E 2분을 총 4세트</b><small>품질 구간 총 4.8km</small></div></div>
+        <div class="step"><div class="n">5</div><div><b id="s5">E 3.2km</b><small>트랙 8랩 · 쿨다운</small></div></div>
+      </div>
+    </div>
+
+    <div class="card warn">
+      <div class="label">적용 원칙</div>
+      <div class="note">
+        E는 Daniels 체계상 단일 페이스가 아니라 범위입니다. 이 앱은 대회 직전 수요일 세션이라는 점을 고려해
+        E 표시값을 65% 강도로 보수적으로 제안하며, 실제로는 표시된 E 범위 안에서 컨디션에 따라 더 느리게 달려도 됩니다.
+        T는 88% 강도 기준으로 계산합니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="note">
+      계산 근거: Daniels–Gilbert 산소비용·지속시간 방정식으로 10K 기록에서 VDOT을 산출하고,
+      E 59–74%, T 88% 강도를 역산합니다. 본 앱은 훈련 보조용이며 공식 VDOT 앱 자체는 아닙니다.
+    </div>
+  </div>
+</div>
+
+<script>
+const A = 0.000104, B = 0.182258;
+
+function setTime(m,s){
+  document.getElementById('hh').value = 0;
+  document.getElementById('mm').value = m;
+  document.getElementById('ss').value = String(s).padStart(2,'0');
+  calculate();
+}
+
+function fmtPace(sec){
+  sec = Math.round(sec);
+  const m = Math.floor(sec/60), s = sec%60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+function fmtTime(sec){
+  sec = Math.round(sec);
+  const m = Math.floor(sec/60), s = sec%60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+function oxygenCost(v){
+  return -4.60 + B*v + A*v*v;
+}
+function fracSustainable(tMin){
+  return 0.8 + 0.1894393*Math.exp(-0.012778*tMin) + 0.2989558*Math.exp(-0.1932605*tMin);
+}
+function velocityFromVO2(vo2){
+  // A v^2 + B v - (4.60 + vo2) = 0
+  const C = -(4.60 + vo2);
+  return (-B + Math.sqrt(B*B - 4*A*C)) / (2*A);
+}
+function paceAt(vdot,pct){
+  const v = velocityFromVO2(vdot*pct);
+  return 60000/v; // sec/km
+}
+
+function equivalentTimeForDistance(vdot, distanceMeters){
+  // Daniels-Gilbert equation inversion by bisection.
+  // Solve for race duration that produces the same VDOT at the target distance.
+  let lo = 30;   // minutes
+  let hi = 600;  // minutes
+  for(let i=0;i<100;i++){
+    const t = (lo+hi)/2;
+    const v = distanceMeters/t; // m/min
+    const vo2 = oxygenCost(v);
+    const eq = vo2 / fracSustainable(t);
+    if(eq > vdot){
+      lo = t; // too fast: increase duration
+    }else{
+      hi = t;
+    }
+  }
+  return ((lo+hi)/2)*60; // seconds
+}
+
+function fmtClock(sec){
+  sec = Math.round(sec);
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = sec%60;
+  return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function calculate(){
+  const h = Math.max(0, parseInt(document.getElementById('hh').value)||0);
+  const m = Math.max(0, parseInt(document.getElementById('mm').value)||0);
+  const s = Math.max(0, parseInt(document.getElementById('ss').value)||0);
+  const totalSec = h*3600 + m*60 + s;
+  if(totalSec < 1200 || totalSec > 7200){
+    alert('10K 기록을 확인해주세요. 예: 0시간 40분 00초');
+    return;
+  }
+
+  const tMin = totalSec/60;
+  const v = 10000/tMin; // m/min
+  const vo2 = oxygenCost(v);
+  const vdot = vo2 / fracSustainable(tMin);
+
+  const eFast = paceAt(vdot, .74);
+  const eSlow = paceAt(vdot, .59);
+  const eRec  = paceAt(vdot, .65);
+  const tPace = paceAt(vdot, .88);
+  const marathonSec = equivalentTimeForDistance(vdot, 42195);
+
+  const racePace = totalSec/10;
+  const t400 = tPace*0.4;
+  const t1200 = tPace*1.2;
+
+  document.getElementById('racePace').textContent = fmtPace(racePace);
+  document.getElementById('vdot').textContent = vdot.toFixed(1);
+  document.getElementById('marathonEstimate').textContent = fmtClock(marathonSec);
+  document.getElementById('eRange').textContent = `${fmtPace(eFast)}–${fmtPace(eSlow)}`;
+  document.getElementById('eRec').textContent = fmtPace(eRec) + '/km';
+  document.getElementById('tPace').textContent = fmtPace(tPace);
+  document.getElementById('t400').textContent = fmtTime(t400);
+  document.getElementById('t1200').textContent = fmtTime(t1200);
+
+  document.getElementById('s1').textContent = `E 3.2km @ ${fmtPace(eRec)}/km`;
+  document.getElementById('s2').textContent = `T 1200m × 4 @ ${fmtTime(t1200)} (${fmtTime(t400)}/400m)`;
+  document.getElementById('s3').textContent = `세트 사이 E 2분 @ 약 ${fmtPace(eRec)}/km`;
+  document.getElementById('s5').textContent = `E 3.2km @ ${fmtPace(eRec)}/km`;
+
+  document.getElementById('results').classList.remove('hidden');
+}
+
+calculate();
+</script>
+</body>
+</html>
