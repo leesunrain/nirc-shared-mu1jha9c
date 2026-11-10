@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daniels-t-session-shell';
+const CACHE_NAME = 'daniels-t-session-shell-v1-1-display-fix';
 const ASSETS = [
   './',
   './index.html',

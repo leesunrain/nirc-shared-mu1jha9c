@@ -286,7 +286,7 @@ function calculate(){
   document.getElementById('t1200').textContent = fmtTime(t1200);
 
   document.getElementById('s1').textContent = `E 3.2km @ ${fmtPace(eRec)}/km`;
-  document.getElementById('s2').textContent = `T 1200m × 4 @ ${fmtTime(t1200)} (${fmtTime(t400)}/400m)`;
+  document.getElementById('s2').textContent = `T 1200m × 4 @ ${fmtPace(tPace)}/km (${fmtTime(t1200)}/1200m)`;
   document.getElementById('s3').textContent = `세트 사이 E 2분 @ 약 ${fmtPace(eRec)}/km`;
   document.getElementById('s5').textContent = `E 3.2km @ ${fmtPace(eRec)}/km`;
 
